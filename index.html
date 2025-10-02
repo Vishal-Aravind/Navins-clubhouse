@@ -1,0 +1,1197 @@
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+
+    <title>Navin's 360 Virtual Tour</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+
+#rotateOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 100000;
+  flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+#rotateOverlay img {
+  max-width: 300px; 
+  width: 50vw;
+  height: auto;
+  margin-bottom: 24px;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+#rotateOverlay span {
+  font-size: 45px; 
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+@media only screen and (orientation: portrait) {
+  #rotateOverlay {
+    display: flex;
+  }
+}
+
+@media screen and (orientation: portrait) {
+  #rotateWarning {
+    display: block;
+  }
+}
+
+@media screen and (orientation: landscape) {
+  #rotateWarning {
+    display: none;
+  }
+}
+
+/* Scrollable and hidden scrollbar container */
+#scene-menu {
+    position: absolute;           /* Ensures it stays in place while scrolling */
+    top: 40px;                 /* Optional: position from top */
+    right: 30px;  
+
+    max-height: 90vh;
+    overflow-y: auto;
+    padding-right: 45px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    font-family: 'Poppins', sans-serif;
+    z-index: 10000;  
+
+    
+}
+#scene-menu::-webkit-scrollbar {
+    display: none;
+}
+
+/* Each scene item */
+#scene-menu div {
+    margin: 14px 0;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#scene-menu div:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+/* Enlarged and styled thumbnails */
+#scene-menu img {
+    width: 10px;
+    height: 105px;
+    border-radius: 10px;
+    display: block;
+    margin: 0 auto 6px;
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.444);
+    transition: box-shadow 0.3s ease;
+}
+
+/* Label text */
+#scene-menu div span {
+    display: block;
+    margin-top: 2px;
+    font-size: 16px;
+    color: #fff;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    letter-spacing: 0.5px;
+}
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #panorama {
+        width: 100%;
+        height: 100vh;
+      }
+
+      .pnlm-context-menu {
+        display: none !important;
+      }
+
+      .pnlm-load-box{
+        display: none  !important;
+      }
+
+      .pnlm-about-msg {
+    display: none !important;
+      }
+
+/* Message in scene1 */
+
+#scene1InfoBox {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: none;
+}
+
+#scene1InfoBox .info-content {
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 16px;
+  padding: 20px 30px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.5s ease;
+}
+
+#scene1InfoBox .info-content img {
+  width: 63px;
+  height: 63px;
+  margin-bottom: -10 px;
+}
+
+#scene1InfoBox .info-content p {
+  margin: 10px 0 20px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+#scene1InfoBox .info-content button {
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#scene1InfoBox .info-content button:hover {
+  background: sandybrown;
+}
+
+ #controls {
+        position: absolute;
+        bottom: 0;
+        z-index: 2;
+        text-align: center;
+        width: 100%;
+        padding-bottom: 3px;
+        pointer-events: none;
+    }
+    .ctrl {
+        padding: 8px 5px;
+        width: 30px;
+        text-align: center;
+        background: rgba(200, 200, 200, 0.8);
+        display: inline-block;
+        cursor: pointer;
+        pointer-events: auto;
+    }
+    .ctrl:hover {
+        background: rgba(200, 200, 200, 1);
+    }
+
+#panorama canvas {
+  image-rendering: auto; /* or crisp-edges for pixel-art style */
+}
+
+.arrow{
+  width: 90px;
+  height: 90px;
+  background-image: url('hotspot/arrow.gif');
+  background-size: contain;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+}
+
+#panorama:fullscreen .nav-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.nav-button {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    padding: 12px 24px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #000000, #000000);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 9999;
+}
+
+.nav-button:hover {
+    background: linear-gradient(135deg, #d7fba6, #8d9659);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.847);
+    transform: translateY(-2px);
+}
+
+    </style>
+  </head>
+  <body >
+
+<div id="panorama">
+    <div id="controls">
+        <div class="ctrl" id="pan-up">&#9650;</div>
+        <div class="ctrl" id="pan-down">&#9660;</div>
+        <div class="ctrl" id="pan-left">&#9664;</div>
+        <div class="ctrl" id="pan-right">&#9654;</div>
+        <div class="ctrl" id="zoom-in">&plus;</div>
+        <div class="ctrl" id="zoom-out">&minus;</div>
+        <div class="ctrl" id="fullscreen">&#x2922;</div>
+    </div>
+</div>
+
+<div id="panorama">
+    <button class="nav-button" onclick="window.location.href='https://vishal-aravind.github.io/Navins-clubhouse/'">
+        Go to Clubhouse
+    </button>
+</div>
+
+ <!-- Message box in scene 1-->
+<div id="scene1InfoBox">
+  <div class="info-content">
+    <img src="hotspot/arrow.gif" alt="Hotspot">
+    <p>Click the arrow to move</p>
+    <button onclick="dismissInfo()">OK</button>
+  </div>
+</div>
+
+<div id="scene-menu" style="position:absolute; top:50px; right:20px; z-index:999;">
+  <div onclick="viewer.loadScene('Park')">
+    <img src="clubhouse/Park.jpg" style="width:120px; display:block;"><span>Park</span>
+  </div>
+    <div onclick="viewer.loadScene('Cafeteria')">
+    <img src="clubhouse/Cafeteria.jpg" style="width:120px; display:block;"><span>Cafeteria</span>
+  </div>
+  <div onclick="viewer.loadScene('Working_Space')">
+    <img src="clubhouse/CoWorking_Space.jpg" style="width:120px; display:block;"><span>Working Space</span>
+  </div>
+  <div onclick="viewer.loadScene('Table_Tennis')">
+    <img src="clubhouse/TableTennis.jpg" style="width:120px; display:block;"><span>Table Tennis</span>
+  </div>
+    <div onclick="viewer.loadScene('Kids_PlayArea')">
+    <img src="clubhouse/Kids_PlayArea.jpg" style="width:120px; display:block;"><span>Kids Play Area</span>
+  </div>
+  <div onclick="viewer.loadScene('Lounge_ClubHouse')">
+    <img src="clubhouse/Lounge_ClubHouse.jpg" style="width:120px; display:block;"><span>ClubHouse Lounge</span>
+  </div>
+  <div onclick="viewer.loadScene('Meditation_Room')">
+    <img src="clubhouse/Meditation_Room.jpg" style="width:120px; display:block;"><span>Meditation Room</span>
+  </div>
+  <div onclick="viewer.loadScene('Gym')">
+    <img src="clubhouse/Gym.jpg" style="width:120px; display:block;"><span>Gym</span>
+  </div>
+  <div onclick="viewer.loadScene('Theatre')">
+    <img src="clubhouse/Theatre.jpg" style="width:120px; display:block;"><span>Theatre</span>
+  </div>
+    <div onclick="viewer.loadScene('Play_Area_1')">
+    <img src="clubhouse/Play_Area_1.jpg" style="width:120px; display:block;"><span>Play Area 1</span>
+  </div>
+  <div onclick="viewer.loadScene('Play_Area_2')">
+    <img src="clubhouse/Play_Area_2.jpg" style="width:120px; display:block;"><span>Play Area 2</span>
+  </div>
+  <div onclick="viewer.loadScene('Play_Area_3')">
+    <img src="clubhouse/Play_Area_3.jpg" style="width:120px; display:block;"><span>Play Area 3</span>
+  </div>
+  <div onclick="viewer.loadScene('Swimming_Pool')">
+    <img src="clubhouse/Swimming_Pool.jpg" style="width:120px; display:block;"><span>Swimming Pool</span>
+  </div>
+</div>
+
+
+<!--Safari-->
+<div id="orientationOverlay" style="
+  display: none;
+  position: fixed;
+  z-index: 99999;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+">
+  <img src="rotate.png" alt="Rotate Device" style="max-width: 300px;width: 50vw;height: auto; margin-bottom: 24px; animation: breathe 3s ease-in-out infinite">
+  <p>Please rotate your device to landscape mode</p>
+</div>
+
+    <!-- Viewer Container -->
+    <div id="panorama"></div>
+
+    <!-- Script Section -->
+    <script>
+      let viewer;
+
+function logoTooltip(hotSpotDiv, args) {
+const img = document.createElement("img");
+img.src = args.imageUrl;
+img.style.width = "630px";
+img.style.height = "auto";
+hotSpotDiv.appendChild(img);
+}
+
+//Message box in scene 1
+let outdoor1InfoShown = false;
+let outdoor1InfoDismissed = false;   // Global flag
+
+//Message box in scene 1
+function dismissInfo() {
+  document.getElementById('scene1InfoBox').style.display = 'none';
+  outdoor1InfoShown = true;  // Set flag to true so it won't show again
+}
+ 
+function loadSceneById(id) {
+  if (viewer) {
+    viewer.loadScene(id);
+    // Message box in scene 1
+    if (id == 'Park' && !outdoor1InfoShown) {
+      document.getElementById('scene1InfoBox').style.display = 'block';
+    }
+  }
+}
+
+      viewer = pannellum.viewer('panorama', {
+        "default": {
+          "firstScene": "Park",
+          "sceneFadeDuration": 1000,
+          "autoLoad": true,
+          "showControls":false,
+          "autoRotate":-3,
+          // hotSpotDebug:true,  
+        },
+        "scenes": {
+          "Park": {
+            "title": "Park",
+            "panorama": "clubhouse/Park.jpg",
+            "yaw": 165,
+            "pitch": 5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -2.56,
+                "yaw": -91.0,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Cafeteria",
+                "sceneId": "Cafeteria",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -0.423,
+                "yaw": 75.51,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Back to House",
+                "sceneId": "Living_Hall",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Cafeteria": {
+            "title": "Cafeteria",
+            "panorama": "clubhouse/Cafeteria.jpg",
+            "yaw": -5,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -15.74,
+                "yaw": 129.94,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Co-Working Space",
+                "sceneId": "Working_Space",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -11.91,
+                "yaw": -139.51,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Park",
+                "sceneId": "Park",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Working_Space": {
+            "title": "Working Space",
+            "panorama": "clubhouse/CoWorking_Space.jpg",
+            "yaw": -79,
+            "pitch": -11,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -19.23,
+                "yaw": 49.26,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Table Tennis",
+                "sceneId": "Table_Tennis",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -11,
+                "yaw": -2,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Cafeteria",
+                "sceneId": "Cafeteria",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Table_Tennis": {
+            "title": "Table Tennis",
+            "panorama": "clubhouse/TableTennis.jpg",
+            "yaw": 172,
+            "pitch": -8,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -9.83,
+                "yaw": 90.76,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Kids Play Area",
+                "sceneId": "Kids_PlayArea",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -14.54,
+                "yaw": -109.12,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Co-Working Space",
+                "sceneId": "Working_Space",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Kids_PlayArea": {
+            "title": "Kids Play Area",
+            "panorama": "clubhouse/Kids_PlayArea.jpg",
+            "yaw": 175,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -22.46,
+                "yaw": 92.91,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Lounge",
+                "sceneId": "Lounge_ClubHouse",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -37.95,
+                "yaw": -93.66,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Table Tennis",
+                "sceneId": "Table_Tennis",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Lounge_ClubHouse": {
+            "title": "Lounge",
+            "panorama": "clubhouse/Lounge_ClubHouse.jpg",
+            "yaw": 165,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -2.57,
+                "yaw": 172.20,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Meditation Room",
+                "sceneId": "Meditation_Room",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -11,
+                "yaw": -2,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Kids Play Area",
+                "sceneId": "Kids_PlayArea",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Meditation_Room": {
+            "title": "Meditation Room",
+            "panorama": "clubhouse/Meditation_Room.jpg",
+            "yaw": 97,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -5.12,
+                "yaw": 98.65,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Gym",
+                "sceneId": "Gym",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -13.96,
+                "yaw": -81.94,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Lounge",
+                "sceneId": "Lounge_ClubHouse",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl:"NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Gym": {
+            "title": "Gym",
+            "panorama": "clubhouse/Gym.jpg",
+            "yaw": 81,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -10.90,
+                "yaw": 83.55,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Theatre",
+                "sceneId": "Theatre",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": 1.36,
+                "yaw": -94.01,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Meditation Room",
+                "sceneId": "Meditation_Room",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl:"NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Theatre": {
+            "title": "Theatre",
+            "panorama": "clubhouse/Theatre.jpg",
+            "yaw": -8,
+            "pitch": -7,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -15.41,
+                "yaw": -7.61,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Play Area",
+                "sceneId": "Play_Area_1",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": 2.61,
+                "yaw": 170.13,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Gym",
+                "sceneId": "Gym",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Play_Area_1": {
+            "title": "Play Area",
+            "panorama": "clubhouse/Play_Area_1.jpg",
+            "yaw": 69,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -20.17,
+                "yaw": 70.29,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "View 2",
+                "sceneId": "Play_Area_2",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -7.73,
+                "yaw": -112,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Theatre",
+                "sceneId": "Theatre",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Play_Area_2": {
+            "title": "Play Area",
+            "panorama": "clubhouse/Play_Area_2.jpg",
+            "yaw": 102,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -20.38,
+                "yaw": 82.40,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "View 3",
+                "sceneId": "Play_Area_3",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -18.75,
+                "yaw": -81.20,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "View 1",
+                "sceneId": "Play_Area_1",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Play_Area_3": {
+            "title": "Play Area",
+            "panorama": "clubhouse/Play_Area_3.jpg",
+            "yaw": 8.4,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+              "pitch": -24.19,
+                "yaw": 5.84,
+                "Centre Pitch": -5,
+                "Centre Yaw": -5,
+                "type": "scene",
+                "text": "Swimming Pool",
+                "sceneId": "Swimming_Pool",
+                "cssClass": "arrow"
+              },
+              {
+               "pitch": -17.77,
+                "yaw": -162.76,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "View 2",
+                "sceneId": "Play_Area_2",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+          "Swimming_Pool": {
+            "title": "Swimming Pool",
+            "panorama": "clubhouse/Swimming_Pool.jpg",
+            "yaw": 177,
+            "pitch": -5,
+            "hfov": 150,
+            preload:true,
+            "hotSpots": [
+              {
+               "pitch": -11,
+                "yaw": -2,
+                "Centre Pitch": -8,
+                "Centre Yaw": 5,
+                "type": "scene",
+                "text": "Play Area ",
+                "sceneId": "Play_Area_1",
+                "cssClass": "arrow"
+              },
+              {
+                "pitch": -90,
+                "yaw": 0,
+                "type": "custom",
+                "cssClass": "company-logo-hotspot",
+                "createTooltipFunc": logoTooltip,
+                "createTooltipArgs": {
+                 imageUrl: "NavinsLogo.png" 
+                 }
+              }
+            ]
+          },
+        }
+      });
+
+      // Message in scene1//  
+viewer.on('load', function () {
+  const currentScene = viewer.getScene();
+
+  if (currentScene === 'Park' && !outdoor1InfoShown && !outdoor1InfoDismissed) {
+    document.getElementById('scene1InfoBox').style.display = 'block';
+    outdoor1InfoShown = true;
+  } else {
+    document.getElementById('scene1InfoBox').style.display = 'none';
+  }
+});
+
+// Button click handler
+function dismissInfo() {
+  document.getElementById('scene1InfoBox').style.display = 'none';
+  outdoor1InfoDismissed = true;
+}
+
+    </script>
+
+    <script>
+  document.addEventListener("fullscreenchange", () => {
+    const fsElement = document.fullscreenElement;
+    const sidebar = document.getElementById('sidebar');
+    const button = document.getElementById('toggleButton');
+
+    if (fsElement) {
+      // Move sidebar and button into the fullscreen element
+      if (!fsElement.contains(sidebar)) {
+        fsElement.appendChild(sidebar);
+      }
+      if (!fsElement.contains(button)) {
+        fsElement.appendChild(button);
+      }
+    } else {
+      // Move sidebar and button back to body when exiting fullscreen
+      document.body.appendChild(sidebar);
+      document.body.appendChild(button);
+    }
+  });
+</script>
+
+<script>
+  function checkOrientation() {
+    const o = screen.orientation || window.orientation;
+    const overlay = document.getElementById('rotateOverlay');
+    const isLandscape = (o.type ? o.type.includes('landscape') : Math.abs(o) === 90);
+    overlay.style.display = isLandscape ? 'none' : 'flex';
+  }
+  window.addEventListener('orientationchange', checkOrientation);
+  window.addEventListener('resize', checkOrientation);
+  checkOrientation();
+</script>
+
+<script>
+  // Safari 
+  function checkOrientation() {
+    const isLandscape = window.innerWidth > window.innerHeight;
+
+    const overlay = document.getElementById('orientationOverlay');
+    if (isLandscape) {
+      overlay.style.display = 'none';
+    } else {
+      overlay.style.display = 'flex';
+    }
+  }
+
+  window.addEventListener('orientationchange', () => {
+    setTimeout(checkOrientation, 300); // Safari needs delay
+  });
+
+  window.addEventListener('resize', () => {
+    setTimeout(checkOrientation, 300); // Safari-safe
+  });
+
+  // Initial check
+  window.addEventListener('load', () => {
+    setTimeout(checkOrientation, 300);
+  });
+</script>
+
+<script>
+
+document.getElementById('pan-up').addEventListener('click', function(e) {
+    viewer.setPitch(viewer.getPitch() + 10);
+});
+document.getElementById('pan-down').addEventListener('click', function(e) {
+    viewer.setPitch(viewer.getPitch() - 10);
+});
+document.getElementById('pan-left').addEventListener('click', function(e) {
+    viewer.setYaw(viewer.getYaw() - 10);
+});
+document.getElementById('pan-right').addEventListener('click', function(e) {
+    viewer.setYaw(viewer.getYaw() + 10);
+});
+document.getElementById('zoom-in').addEventListener('click', function(e) {
+    viewer.setHfov(viewer.getHfov() - 10);
+});
+document.getElementById('zoom-out').addEventListener('click', function(e) {
+    viewer.setHfov(viewer.getHfov() + 10);
+});
+document.getElementById('fullscreen').addEventListener('click', function(e) {
+    viewer.toggleFullscreen();
+});
+
+document.addEventListener("fullscreenchange", () => {
+    const menu = document.getElementById("scene-menu");
+    const pannellumContainer = document.querySelector(".pnlm-container");
+
+    if (document.fullscreenElement) {
+        pannellumContainer.appendChild(menu);  // Move menu into fullscreen container
+    } else {
+        document.body.appendChild(menu);       // Move it back on exit
+    }
+});
+
+  document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) {
+    document.fullscreenElement.appendChild(document.querySelector(".nav-button"));
+  } else {
+    document.body.appendChild(document.querySelector(".nav-button"));
+  }
+});
+
+</script>
+
+// Enhanced Image Preloader with Loading Screen
+    <script>
+      // Array of all panorama images
+      const panoramaImages = [
+        "clubhouse/Cafeteria.jpg",
+        "clubhouse/CoWorking_Space.jpg",
+        "clubhouse/Gym.jpg",
+        "clubhouse/Kids_PlayArea.jpg",
+        "clubhouse/Lounge_ClubHouse.jpg",
+        "clubhouse/Meditation_Room.jpg",
+        "clubhouse/Park.jpg",
+        "clubhouse/Play_Area_1.jpg",
+        "clubhouse/Play_Area_2.jpg",
+        "clubhouse/Play_Area_3.jpg",
+        "clubhouse/Swimming_Pool.jpg",
+        "clubhouse/TableTennis.jpg",
+        "clubhouse/Theatre.jpg",
+
+      ];
+
+      const additionalImages = [
+        "rotate.png",
+        "logo.png",
+        "NavinsLogo.png",
+        "hotspot/arrow.gif",
+      ];
+      const allImages = [...panoramaImages, ...additionalImages];
+
+      // Create loading overlay
+      function createLoadingOverlay() {
+        const overlay = document.createElement("div");
+        overlay.id = "loadingOverlay";
+        overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #0a0a0a;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100001;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+  `;
+
+        const logo = document.createElement("img");
+        logo.src = "logo.png";
+        logo.alt = "Company Logo";
+        logo.style.cssText = `
+    width: 243px;
+    height: auto;
+    margin-bottom: 30px;
+    animation: breathe 2.5s ease-in-out infinite;
+  `;
+
+        // CSS animation
+        const style = document.createElement("style");
+        style.innerHTML = `
+    @keyframes breathe {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.9; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  `;
+        document.head.appendChild(style);
+
+        const loadingText = document.createElement("div");
+        loadingText.id = "loadingText";
+        loadingText.innerHTML =
+          'Loading Virtual Tour...<br><span id="loadingProgress">0%</span>';
+        loadingText.style.cssText = `
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    `;
+
+        const progressBar = document.createElement("div");
+        progressBar.style.cssText = `
+      width: 300px;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      overflow: hidden;
+    `;
+
+        const progressFill = document.createElement("div");
+        progressFill.id = "progressFill";
+        progressFill.style.cssText = `
+      height: 100%;
+      background: #ffd700;
+      width: 0%;
+      transition: width 0.3s ease;
+    `;
+
+        progressBar.appendChild(progressFill);
+        overlay.appendChild(logo);
+        overlay.appendChild(loadingText);
+        overlay.appendChild(progressBar);
+        document.body.appendChild(overlay);
+
+        return overlay;
+      }
+
+      // Preload function with progress
+      function preloadImages() {
+        const loadingOverlay = createLoadingOverlay();
+        let loadedCount = 0;
+        const totalImages = allImages.length;
+
+        function updateProgress() {
+          const percentage = Math.round((loadedCount / totalImages) * 100);
+          document.getElementById(
+            "loadingProgress"
+          ).textContent = `${percentage}%`;
+          document.getElementById(
+            "progressFill"
+          ).style.width = `${percentage}%`;
+
+          if (loadedCount === totalImages) {
+            setTimeout(() => {
+              loadingOverlay.remove();
+              console.log("All images preloaded successfully!");
+            }, 500);
+          }
+        }
+
+        allImages.forEach((imageSrc) => {
+          const img = new Image();
+
+          img.onload = img.onerror = function () {
+            loadedCount++;
+            updateProgress();
+          };
+
+          img.src = imageSrc;
+        });
+      }
+
+      // Start preloading when DOM is ready
+      document.addEventListener("DOMContentLoaded", preloadImages);
+    </script>
+
+  </body> 
+  </html>
